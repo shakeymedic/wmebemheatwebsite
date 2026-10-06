@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide: Heat Illness Management in UK EDs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: "Clinical Calm" - A base of Slate neutrals, with Sky Blue for interactive elements and accents, and a cautious Red for critical warnings. -->
+    <!-- Application Structure Plan: A task-oriented SPA design for clinicians. The structure prioritizes rapid access to decision-critical information. The flow is: 1) A main header for context. 2) A primary navigation bar to switch between core clinical domains (Overview, Assessment, Management, Special Populations). This tabbed structure prevents overwhelming the user with a long scroll and allows direct access to needed information. 3) Within each tab, content is organized using cards and clear headings. The "Management" tab is further subdivided to clearly separate the distinct pathways for Heat Exhaustion and Heat Stroke. This design was chosen because a clinician's workflow is not linear; they need to jump to specific protocols (e.g., cooling methods, drug contraindications) instantly. This architecture supports that need far better than a simple document conversion. -->
+    <!-- Visualization & Content Choices: The application translates the report's text into interactive and easily digestible formats. 1) Pathophysiology Flow (Overview): Report info on thermoregulatory collapse is transformed into a CSS-based visual diagram. Goal: Inform. Method: HTML/CSS flexbox diagram. Interaction: Hover effects. Justification: Visual flow is easier to grasp than a dense paragraph. 2) Cooling Methods (Management): Report data on cooling efficacy is visualized. Goal: Compare. Method: Chart.js Bar Chart. Interaction: Clicking a bar reveals detailed pros/cons. Justification: A visual chart immediately conveys the superior efficacy of CWI, a key clinical point, while the interaction provides necessary nuance without initial clutter. 3) Paediatric Fluids (Special Populations): The static table of fluid rates is converted into a functional tool. Goal: Provide a practical utility. Method: JS-powered calculator. Interaction: User inputs weight, receives calculated fluid rates. Justification: Reduces cognitive load and potential for manual calculation errors in a high-stress scenario. All choices adhere to the NO SVG/Mermaid constraint and support the task-oriented application structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-btn.active { border-color: #0284c7; color: #0284c7; background-color: #f0f9ff; }
+        .tab-btn { transition: all 0.2s ease-in-out; }
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-6 lg:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Heat-Related Illness: A UK ED Clinical Guide</h1>
+            <p class="mt-2 text-lg text-slate-600">An interactive resource for the diagnosis and management of hyperthermic emergencies.</p>
+        </header>
+
+        <nav class="mb-8 flex flex-wrap justify-center border-b border-slate-300">
+            <button data-tab="overview" class="tab-btn active text-lg font-medium py-3 px-6 border-b-4 border-transparent hover:bg-slate-200">Overview</button>
+            <button data-tab="assessment" class="tab-btn text-lg font-medium py-3 px-6 border-b-4 border-transparent hover:bg-slate-200">Assessment & Diagnosis</button>
+            <button data-tab="management" class="tab-btn text-lg font-medium py-3 px-6 border-b-4 border-transparent hover:bg-slate-200">Management Protocols</button>
+            <button data-tab="special-populations" class="tab-btn text-lg font-medium py-3 px-6 border-b-4 border-transparent hover:bg-slate-200">Special Populations</button>
+        </nav>
+
+        <main>
+            <!-- Overview Panel -->
+            <div id="overview" class="content-panel active">
+                <section>
+                    <h2 class="text-2xl font-bold text-sky-700 mb-4">The Spectrum of Heat Illness</h2>
+                    <p class="mb-6 text-slate-700">This section provides a high-level overview of heat-related illness, from its underlying pathophysiology to the clinical spectrum. Understanding this progression is key to recognising the severity of a patient's condition and the urgent need for intervention in cases of heat stroke. Heat illness is not a single diagnosis but a continuum of severity reflecting the body's escalating failure to control its core temperature.</p>
+                    <div id="spectrum-flow" class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0 md:space-x-4 text-center"></div>
+                </section>
+                <section class="mt-8">
+                    <h2 class="text-2xl font-bold text-sky-700 mb-4">Pathophysiology: Why Heat Stroke is a Systemic Disease</h2>
+                     <p class="mb-6 text-slate-700">Heat stroke is not simply a state of being too hot; it is a profound systemic inflammatory disease akin to severe sepsis. Extreme heat triggers cellular damage and compromises the gut barrier, leading to endotoxin release. This unleashes a "cytokine storm" and a Systemic Inflammatory Response Syndrome (SIRS), which drives multi-organ failure. This is why antipyretics like paracetamol are ineffective and contraindicated—the issue isn't the brain's thermostat, but an out-of-control peripheral inflammatory cascade.</p>
+                    <div id="pathophysiology-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </section>
+            </div>
+
+            <!-- Assessment Panel -->
+            <div id="assessment" class="content-panel">
+                <section>
+                    <h2 class="text-2xl font-bold text-sky-700 mb-4">Triage & Primary Survey (ABCDE)</h2>
+                    <p class="mb-6 text-slate-700">Rapid and accurate assessment is critical. During heatwaves, maintain a high index of suspicion. The primary survey must focus on identifying the life-threatening features of heat stroke, particularly CNS dysfunction. Remember to get a proper core temperature measurement early.</p>
+                    <div id="assessment-steps" class="space-y-4"></div>
+                </section>
+                <section class="mt-8">
+                    <h2 class="text-2xl font-bold text-sky-700 mb-4">Differential Diagnosis of Hyperthermia with Altered Mental Status</h2>
+                    <p class="mb-6 text-slate-700">Heat stroke is a clinical diagnosis, but several other critical conditions can present with hyperthermia and confusion. A systematic approach is essential as definitive treatments vary significantly. Use this table to compare key features and guide your diagnostic workup.</p>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow">
+                        <table id="diff-dx-table" class="w-full text-sm text-left text-slate-600"></table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Management Panel -->
+            <div id="management" class="content-panel">
+                 <p class="mb-8 text-center text-lg bg-sky-100 text-sky-800 p-4 rounded-lg shadow">This section provides evidence-based treatment protocols. Immediately differentiate between Heat Exhaustion and Heat Stroke, as management pathways diverge significantly. For Heat Stroke, the guiding principle is <strong class="font-bold">Cool First, Investigate Second.</strong></p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <section id="heat-exhaustion-mgmt">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-amber-500 pl-4">Heat Exhaustion Management</h2>
+                        <div class="space-y-4"></div>
+                    </section>
+                    <section id="heat-stroke-mgmt">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-4 border-l-4 border-red-600 pl-4">Heat Stroke Management</h2>
+                        <div class="space-y-4"></div>
+                    </section>
+                </div>
+                 <section class="mt-8">
+                    <h3 class="text-xl font-bold text-sky-700 mb-4">Comparing Cooling Modalities</h3>
+                    <p class="mb-4 text-slate-700">The single most important intervention in heat stroke is rapid cooling. Cold Water Immersion (CWI) is the most effective method, but evaporative cooling is a practical alternative, especially for frail patients. Click on the bars to see pros and cons for each method.</p>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="chart-container">
+                            <canvas id="coolingChart"></canvas>
+                        </div>
+                        <div id="cooling-method-details" class="mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 min-h-[100px]">
+                           <p class="text-center">Click a bar on the chart to view details.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Special Populations Panel -->
+            <div id="special-populations" class="content-panel">
+                 <p class="mb-6 text-slate-700">This section details the specific considerations required for vulnerable groups. The fundamental principles of management remain, but assessment and treatment must be nuanced to account for unique physiological differences, risks, and comorbidities.</p>
+                 <div id="special-populations-content" class="space-y-6"></div>
+            </div>
+        </main>
+
+        <footer class="mt-12 pt-8 border-t border-slate-300 text-center">
+             <h2 class="text-2xl font-bold text-sky-700 mb-4">Key Departmental Recommendations</h2>
+             <ul id="recommendations-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left list-none p-0"></ul>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const appData = {
+                spectrum: [
+                    { name: 'Minor Syndromes', desc: 'Heat cramps, oedema, syncope. Core temp normal. Managed with rest and hydration.', color: 'bg-green-100', textColor: 'text-green-800' },
+                    { name: 'Heat Exhaustion', desc: 'Systemic strain from water/salt depletion. Core temp 37-40°C. NO CNS dysfunction.', color: 'bg-amber-100', textColor: 'text-amber-800' },
+                    { name: 'Heat Stroke', desc: 'Thermoregulatory failure. Core temp >40°C WITH CNS dysfunction (confusion, coma, seizures). A true medical emergency.', color: 'bg-red-100', textColor: 'text-red-800' }
+                ],
+                pathophysiology: [
+                    { title: 'Thermoregulatory Failure', icon: '🌡️', desc: 'Compensatory mechanisms (vasodilation, sweating) are overwhelmed and fail, leading to an uncontrolled rise in core body temperature.' },
+                    { title: 'Direct Cytotoxicity', icon: '💥', desc: 'Temperatures >40°C directly damage cells, denature proteins, and increase membrane permeability, especially in the brain (cerebellum).' },
+                    { title: 'SIRS & Endotoxemia', icon: '☣️', desc: 'Gut ischemia allows bacterial endotoxins to enter circulation, triggering a massive systemic inflammatory response (SIRS), similar to sepsis.' },
+                    { title: 'Multi-Organ Dysfunction', icon: '💔', desc: 'The combination of heat toxicity, hypoperfusion, and SIRS leads to failure of the brain, heart, kidneys, liver, and coagulation system (DIC).' }
+                ],
+                assessment: [
+                    { letter: 'A', title: 'Airway', detail: 'Assess for patency. Decreased GCS increases aspiration risk. Prepare for early intubation in heat stroke.' },
+                    { letter: 'B', title: 'Breathing', detail: 'Check rate and sats. Tachypnoea is common. Listen for crackles (ARDS).' },
+                    { letter: 'C', title: 'Circulation', detail: 'Assess for shock (tachycardia, hypotension). Secure large-bore IV access immediately.' },
+                    { letter: 'D', title: 'Disability', detail: 'PIVOTAL STEP. Any altered mental status (confusion, ataxia, seizure, coma) with hyperthermia = Heat Stroke. Check GCS and blood glucose.' },
+                    { letter: 'E', title: 'Exposure & Environment', detail: 'Remove all clothing to facilitate assessment and begin cooling. Obtain accurate CORE temperature (rectal is gold standard).' }
+                ],
+                differentialDiagnosis: {
+                    headers: ['Condition', 'Key Differentiator / Notes'],
+                    rows: [
+                        ['Heat Stroke', 'History of heat exposure is paramount. CNS dysfunction is the defining feature. Muscles often flaccid.'],
+                        ['Sepsis/Meningitis', 'Look for a source of infection. Nuchal rigidity points to meningitis.'],
+                        ['Neuroleptic Malignant Syndrome', 'The extreme "lead-pipe" muscle rigidity is the hallmark. Slower onset (days). History of antipsychotic use.'],
+                        ['Serotonin Syndrome', 'Clonus and hyperreflexia are key. Rapid onset (hours). History of serotonergic drug use.'],
+                        ['Malignant Hyperthermia', 'Occurs in the peri-operative setting after anaesthetic exposure. Masseter spasm is a key sign.'],
+                        ['Anticholinergic Toxicity', 'Classic toxidrome: "Red as a beet, dry as a bone, blind as a bat, mad as a hatter". Mydriasis and dry skin are prominent.'],
+                        ['Thyroid Storm', 'History of hyperthyroidism. Look for goitre, ophthalmopathy, tremor, and atrial fibrillation.']
+                    ]
+                },
+                management: {
+                    exhaustion: [
+                        { icon: '❄️', title: 'Cooling & Rest', desc: 'Move to a cool environment. Remove restrictive clothing. Use simple measures like fanning and tepid sponging. Encourage rest.' },
+                        { icon: '💧', title: 'Rehydration', desc: 'Oral rehydration with electrolyte solutions is preferred if alert and not vomiting. IV isotonic crystalloids (e.g., 0.9% NaCl) if unable to tolerate oral intake or significantly depleted.' },
+                        { icon: '📋', title: 'Discharge Criteria', desc: 'Discharge only after symptoms resolve, vitals normalise, and oral fluids are tolerated. Crucially, ensure a safe, cool environment to return to. Provide strict safety-netting advice about "red flag" signs of heat stroke.' }
+                    ],
+                    stroke: [
+                        { icon: '🧊', title: 'Rapid Cooling is Priority #1', desc: 'The goal is to lower core temp to 39°C as fast as possible. This is the single most important intervention.' },
+                        { icon: '💨', title: 'Airway & Ventilatory Support', desc: 'Intubate for GCS < 8 or respiratory distress. AVOID succinylcholine (risk of hyperkalaemia from rhabdomyolysis). Use rocuronium. Sedation and paralysis can aid cooling by stopping shivering.' },
+                        { icon: '🩸', title: 'Haemodynamic Support', desc: 'Judicious fluid resuscitation with chilled isotonic crystalloids. If MAP < 65 mmHg persists, start norepinephrine as the first-line vasopressor.' },
+                        { icon: '💊', title: 'Pharmacology', desc: 'Use Benzodiazepines (e.g., lorazepam) to control seizures and shivering. DO NOT USE antipyretics (paracetamol, NSAIDs) or dantrolene—they are ineffective and potentially harmful.' },
+                        { icon: '🏥', title: 'Disposition', desc: 'ALL patients with heat stroke require admission to a critical care (ICU/HDU) environment for ongoing monitoring and organ support, even if they initially improve.' },
+                    ]
+                },
+                coolingMethods: {
+                    labels: ['Cold Water Immersion (CWI)', 'Evaporative Cooling'],
+                    data: [0.22, 0.15], // Average cooling rate in °C/min
+                    details: [
+                        { title: 'Cold Water Immersion (CWI)', pros: 'The fastest and most effective cooling method available (gold standard).', cons: 'Logistically difficult in an ED. Can impede access for monitoring and procedures. Can be very stressful for frail patients.', bestFor: 'Young, healthy patients with Exertional Heat Stroke (EHS).' },
+                        { title: 'Evaporative Cooling', pros: 'Highly practical and effective in most ED settings. Less physiologically stressful. Allows full patient access.', cons: 'Less rapid than CWI. Requires large fans and continuous spraying with tepid water.', bestFor: 'The preferred method for older, frail patients with classic heat stroke.' }
+                    ]
+                },
+                specialPops: [
+                    { 
+                        title: 'Paediatric Patients',
+                        icon: '👶',
+                        content: `
+                            <p class="mb-2"><strong>High Risk:</strong> Children have a high surface-area-to-mass ratio, immature thermoregulation, and are dependent on caregivers.</p>
+                            <p class="mb-2"><strong>Management Nuances:</strong></p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Cooling:</strong> Evaporative cooling is generally preferred over immersion to avoid profound vasoconstriction and bradycardia.</li>
+                                <li><strong>Hydration:</strong> Do NOT give plain water to infants < 6 months (risk of hyponatraemia); use breast/formula feeds. For older children, use oral rehydration solutions.</li>
+                            </ul>
+                            <div class="mt-4 p-4 bg-sky-50 rounded-lg border border-sky-200">
+                                <h4 class="font-bold text-md mb-2">Paediatric Fluid Calculator</h4>
+                                <label for="weight-input" class="block text-sm font-medium text-slate-700">Enter Child's Weight (kg):</label>
+                                <input type="number" id="weight-input" class="mt-1 block w-full md:w-1/2 rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" placeholder="e.g., 15">
+                                <div id="fluid-results" class="mt-3 text-sm space-y-1"></div>
+                            </div>
+                        `
+                    },
+                    {
+                        title: 'Geriatric Patients',
+                        icon: '🧓',
+                        content: `
+                            <p class="mb-2"><strong>High Risk:</strong> The highest-risk group for classic heat stroke due to decreased physiological reserve, comorbidities (heart/kidney disease), and polypharmacy (diuretics, beta-blockers, anticholinergics).</p>
+                            <p class="mb-2"><strong>Management Nuances:</strong></p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Presentation:</strong> Can be subtle, presenting as confusion, delirium, or a fall. Maintain a low threshold for investigation.</li>
+                                <li><strong>Cooling:</strong> Evaporative cooling is the safer, preferred method. CWI can be too stressful for a compromised cardiovascular system.</li>
+                                <li><strong>Fluids:</strong> Resuscitate with extreme caution to avoid precipitating heart failure. Use small, judicious fluid challenges with frequent reassessment.</li>
+                            </ul>
+                        `
+                    },
+                     {
+                        title: 'The Pregnant Patient',
+                        icon: '🤰',
+                        content: `
+                            <p class="mb-2"><strong>Dual Concern:</strong> Management must consider both maternal and fetal wellbeing. Hyperthermia is teratogenic.</p>
+                            <p class="mb-2"><strong>Management Nuances:</strong></p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Positioning:</strong> Manage in the left lateral tilt position to avoid aortocaval compression.</li>
+                                <li><strong>Monitoring:</strong> Institute continuous fetal monitoring as soon as feasible.</li>
+                                <li><strong>Consultation:</strong> All treatment decisions must be made in close consultation with obstetrics.</li>
+                            </ul>
+                        `
+                    }
+                ],
+                recommendations: [
+                    { icon: '📜', text: 'Develop and drill a tiered heat illness protocol for your department.' },
+                    { icon: '🎓', text: 'Prioritise regular staff training on recognition, risk factors, and immediate management.' },
+                    { icon: '🌡️', text: 'Ensure equipment readiness: rectal thermometers, fans, and cooling supplies must be accessible.' },
+                    { icon: '🚑', text: 'Collaborate with pre-hospital services to promote a "cool first, transport second" approach.' },
+                    { icon: '❤️', text: 'Embrace the public health role: educate patients and families on prevention at discharge.' },
+                    { icon: '📞', text: 'Maintain strong communication pathways with critical care for seamless patient transition.' },
+                ]
+            };
+
+            const spectrumFlow = document.getElementById('spectrum-flow');
+            appData.spectrum.forEach((item, index) => {
+                spectrumFlow.innerHTML += `
+                    <div class="flex-1 p-4 rounded-lg shadow-md ${item.color} ${item.textColor} transform hover:scale-105 transition-transform">
+                        <h3 class="font-bold text-lg">${item.name}</h3>
+                        <p class="text-sm mt-1">${item.desc}</p>
+                    </div>
+                    ${index < appData.spectrum.length - 1 ? '<div class="text-3xl font-bold text-slate-400 transform md:rotate-0 rotate-90">&rarr;</div>' : ''}
+                `;
+            });
+            
+            const pathophysiologyCards = document.getElementById('pathophysiology-cards');
+            appData.pathophysiology.forEach(item => {
+                pathophysiologyCards.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                        <div class="flex items-center mb-2">
+                           <span class="text-2xl mr-3">${item.icon}</span>
+                           <h3 class="font-bold text-lg text-slate-800">${item.title}</h3>
+                        </div>
+                        <p class="text-slate-600">${item.desc}</p>
+                    </div>
+                `;
+            });
+
+            const assessmentSteps = document.getElementById('assessment-steps');
+            appData.assessment.forEach(item => {
+                assessmentSteps.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-sky-500">
+                        <h3 class="font-bold text-xl text-slate-800"><span class="text-sky-600 font-black">${item.letter}</span> - ${item.title}</h3>
+                        <p class="mt-1 text-slate-600">${item.detail}</p>
+                    </div>
+                `;
+            });
+            
+            const diffDxTable = document.getElementById('diff-dx-table');
+            const diffDxData = appData.differentialDiagnosis;
+            let tableHTML = `<thead class="text-xs text-slate-700 uppercase bg-slate-100"><tr>`;
+            diffDxData.headers.forEach(h => tableHTML += `<th scope="col" class="px-6 py-3">${h}</th>`);
+            tableHTML += `</tr></thead><tbody>`;
+            diffDxData.rows.forEach((row, index) => {
+                tableHTML += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b">`;
+                row.forEach((cell, cellIndex) => {
+                   tableHTML += `<td class="px-6 py-4 ${cellIndex === 0 ? 'font-medium text-slate-900' : ''}">${cell}</td>`;
+                });
+                tableHTML += `</tr>`;
+            });
+            tableHTML += `</tbody>`;
+            diffDxTable.innerHTML = tableHTML;
+
+            const heatExhaustionMgmt = document.getElementById('heat-exhaustion-mgmt').querySelector('.space-y-4');
+            appData.management.exhaustion.forEach(item => {
+                 heatExhaustionMgmt.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex items-start">
+                            <span class="text-2xl mr-4 mt-1">${item.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-lg text-slate-800">${item.title}</h4>
+                                <p class="text-slate-600">${item.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                 `;
+            });
+            
+            const heatStrokeMgmt = document.getElementById('heat-stroke-mgmt').querySelector('.space-y-4');
+            appData.management.stroke.forEach(item => {
+                 heatStrokeMgmt.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex items-start">
+                            <span class="text-2xl mr-4 mt-1">${item.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-lg text-slate-800">${item.title}</h4>
+                                <p class="text-slate-600">${item.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                 `;
+            });
+            
+            const specialPopsContent = document.getElementById('special-populations-content');
+            appData.specialPops.forEach(pop => {
+                specialPopsContent.innerHTML += `
+                    <div class="bg-white p-6 rounded-lg shadow">
+                         <h3 class="font-bold text-xl text-slate-800 mb-3 flex items-center"><span class="text-2xl mr-3">${pop.icon}</span>${pop.title}</h3>
+                         <div class="text-slate-600">${pop.content}</div>
+                    </div>
+                `;
+            });
+
+            const recommendationsList = document.getElementById('recommendations-list');
+            appData.recommendations.forEach(rec => {
+                recommendationsList.innerHTML += `
+                    <li class="bg-white p-4 rounded-lg shadow-sm flex items-center">
+                        <span class="text-2xl mr-4">${rec.icon}</span>
+                        <span class="text-slate-700">${rec.text}</span>
+                    </li>
+                `;
+            });
+
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab-btn');
+            const panels = document.querySelectorAll('.content-panel');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const targetPanel = document.getElementById(tab.dataset.tab);
+                    panels.forEach(p => p.classList.remove('active'));
+                    targetPanel.classList.add('active');
+                });
+            });
+
+            // Paediatric fluid calculator functionality
+            const weightInput = document.getElementById('weight-input');
+            const fluidResults = document.getElementById('fluid-results');
+            if (weightInput) {
+                weightInput.addEventListener('input', (e) => {
+                    const weight = parseFloat(e.target.value);
+                    if (!weight || weight <= 0) {
+                        fluidResults.innerHTML = '';
+                        return;
+                    }
+
+                    let maintenance;
+                    if (weight <= 10) {
+                        maintenance = weight * 4;
+                    } else if (weight <= 20) {
+                        maintenance = 40 + (weight - 10) * 2;
+                    } else {
+                        maintenance = 60 + (weight - 20) * 1;
+                    }
+
+                    const twoThirdsMaintenance = (maintenance * 2 / 3).toFixed(1);
+                    const resuscitationBolus = (weight * 20).toFixed(0);
+
+                    fluidResults.innerHTML = `
+                        <p><strong>Full Maintenance (4/2/1 Rule):</strong> <span class="font-mono text-sky-700 font-bold">${maintenance.toFixed(1)} mL/hr</span></p>
+                        <p><strong>2/3 Maintenance:</strong> <span class="font-mono text-sky-700 font-bold">${twoThirdsMaintenance} mL/hr</span> (common for unwell children)</p>
+                        <p><strong>Resuscitation Bolus (20mL/kg):</strong> <span class="font-mono text-red-600 font-bold">${resuscitationBolus} mL</span> (isotonic crystalloid)</p>
+                    `;
+                });
+            }
+
+            // Chart.js Cooling Chart
+            const ctx = document.getElementById('coolingChart').getContext('2d');
+            const coolingChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: appData.coolingMethods.labels,
+                    datasets: [{
+                        label: 'Cooling Rate (°C/min)',
+                        data: appData.coolingMethods.data,
+                        backgroundColor: [ 'rgba(2, 132, 199, 0.6)', 'rgba(245, 158, 11, 0.6)' ],
+                        borderColor: [ 'rgb(2, 132, 199)', 'rgb(245, 158, 11)' ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Effectiveness of Cooling Modalities' },
+                        tooltip: {
+                           callbacks: {
+                                label: function(context) {
+                                    return ` ${context.raw} °C/min`;
+                                }
+                           }
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Cooling Rate (°C per minute)' } }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const details = appData.coolingMethods.details[index];
+                            const detailsContainer = document.getElementById('cooling-method-details');
+                            detailsContainer.innerHTML = `
+                                <h4 class="font-bold text-lg text-slate-800">${details.title}</h4>
+                                <p class="mt-2"><strong>Pros:</strong> ${details.pros}</p>
+                                <p class="mt-1"><strong>Cons:</strong> ${details.cons}</p>
+                                <p class="mt-1"><strong>Best For:</strong> ${details.bestFor}</p>
+                            `;
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
