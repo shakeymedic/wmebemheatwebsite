@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Guide: Heat Illness Management in UK EDs</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chosen Palette: "Clinical Calm" - A base of Slate neutrals, with Sky Blue for interactive elements and accents, and a cautious Red for critical warnings. -->
     <!-- Application Structure Plan: A task-oriented SPA design for clinicians. The structure prioritizes rapid access to decision-critical information. The flow is: 1) A main header for context. 2) A primary navigation bar to switch between core clinical domains (Overview, Assessment, Management, Special Populations). This tabbed structure prevents overwhelming the user with a long scroll and allows direct access to needed information. 3) Within each tab, content is organized using cards and clear headings. The "Management" tab is further subdivided to clearly separate the distinct pathways for Heat Exhaustion and Heat Stroke. This design was chosen because a clinician's workflow is not linear; they need to jump to specific protocols (e.g., cooling methods, drug contraindications) instantly. This architecture supports that need far better than a simple document conversion. -->
@@ -19,6 +18,7 @@
         .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
         @media (min-width: 768px) { .chart-container { height: 350px; } }
     </style>
+    <link rel="stylesheet" href="tailwind.bundle.css">
 </head>
 <body class="bg-slate-50 text-slate-800">
 
